@@ -108,18 +108,40 @@ function onOpen() {
     // Note that Markdown does not process within block-level HTML, so it probably 
     // doesn't make sense to add markup within tables.
     if (element.getType() === DocumentApp.ElementType.TABLE) {
-      textElements.push("<table>\n");
-      var nCols = element.getChild(0).getNumCells();
-      for (var i = 0; i < element.getNumChildren(); i++) {
-        textElements.push("  <tr>\n");
-        // process this row
+        var nCols = element.getChild(0).getNumCells();
+        var columnWidths = [];
+    
+        // Calculate the maximum width for each column based on the text length
         for (var j = 0; j < nCols; j++) {
-          textElements.push("    <td>" + element.getChild(i).getChild(j).getText() + "</td>\n");
+            var maxWidth = 0;
+            for (var i = 0; i < element.getNumChildren(); i++) {
+                var text = element.getChild(i).getChild(j).getText();
+                maxWidth = Math.max(maxWidth, text.length);
+            }
+            columnWidths.push(maxWidth);
         }
-        textElements.push("  </tr>\n");
-      }
-      textElements.push("</table>\n");
-    }
+    
+        // Construct the table header
+        var headerRow = "+" + columnWidths.map(width => "=".repeat(width + 2)).join("+") + "+\n";
+        var headerCells = columnWidths.map((width, index) => " " + element.getChild(0).getChild(index).getText() + " ".repeat(width - element.getChild(0).getChild(index).getText().length) + " ").join("|");
+        textElements.push(headerRow);
+        textElements.push("|" + headerCells + "|\n");
+        textElements.push(headerRow);
+    
+        // Construct other rows
+        for (var i = 1; i < element.getNumChildren(); i++) {
+            textElements.push("|");
+            // Process this row
+            for (var j = 0; j < nCols; j++) {
+                var text = element.getChild(i).getChild(j).getText();
+                var padding = " ".repeat(columnWidths[j] - text.length);
+                textElements.push(" " + text + padding + " |");
+            }
+            textElements.push("\n");
+            textElements.push("+" + columnWidths.map(width => "-".repeat(width + 2)).join("+") + "+\n");
+        }
+    }        
+    
     
     // Process various types (ElementType).
     for (var i = 0; i < element.getNumChildren(); i++) {

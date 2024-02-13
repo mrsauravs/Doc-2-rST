@@ -104,9 +104,7 @@ function onOpen() {
     var textElements = [];
     var imagePrefix = "image_";
     
-    // Handle Table elements. Pretty simple-minded now, but works for simple tables.
-    // Note that Markdown does not process within block-level HTML, so it probably 
-    // doesn't make sense to add markup within tables.
+    // Handle table elements
     if (element.getType() === DocumentApp.ElementType.TABLE) {
         var nCols = element.getChild(0).getNumCells();
         var columnWidths = [];

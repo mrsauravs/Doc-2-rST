@@ -106,39 +106,53 @@ function onOpen() {
     
     // Handle table elements
     if (element.getType() === DocumentApp.ElementType.TABLE) {
-        var nCols = element.getChild(0).getNumCells();
-        var columnWidths = [];
-    
-        // Calculate the maximum width for each column based on the text length
-        for (var j = 0; j < nCols; j++) {
-            var maxWidth = 0;
-            for (var i = 0; i < element.getNumChildren(); i++) {
-                var text = element.getChild(i).getChild(j).getText();
-                maxWidth = Math.max(maxWidth, text.length);
-            }
-            columnWidths.push(maxWidth);
-        }
-    
-        // Construct the table header
-        var headerRow = "+" + columnWidths.map(width => "=".repeat(width + 2)).join("+") + "+\n";
-        var headerCells = columnWidths.map((width, index) => " " + element.getChild(0).getChild(index).getText() + " ".repeat(width - element.getChild(0).getChild(index).getText().length) + " ").join("|");
-        textElements.push(headerRow);
-        textElements.push("|" + headerCells + "|\n");
-        textElements.push(headerRow);
-    
-        // Construct other rows
-        for (var i = 1; i < element.getNumChildren(); i++) {
-            textElements.push("|");
-            // Process this row
-            for (var j = 0; j < nCols; j++) {
-                var text = element.getChild(i).getChild(j).getText();
-                var padding = " ".repeat(columnWidths[j] - text.length);
-                textElements.push(" " + text + padding + " |");
-            }
-            textElements.push("\n");
-            textElements.push("+" + columnWidths.map(width => "-".repeat(width + 2)).join("+") + "+\n");
-        }
-    }        
+      var nCols = element.getChild(0).getNumCells();
+      var columnWidths = [];
+      var rowHeights = [];
+  
+      // Calculate the maximum width and height for each column based on the text length
+      for (var j = 0; j < nCols; j++) {
+          var maxWidth = 0;
+          for (var i = 0; i < element.getNumChildren(); i++) {
+              var text = element.getChild(i).getChild(j).getText();
+              var lines = text.split('\n');
+              for (var k = 0; k < lines.length; k++) {
+                  maxWidth = Math.max(maxWidth, lines[k].length);
+              }
+              rowHeights[i] = Math.max(rowHeights[i] || 0, lines.length);
+          }
+          columnWidths.push(maxWidth);
+      }
+  
+      // Construct the table header
+      var headerRow = "+" + columnWidths.map(width => "=".repeat(width + 2)).join("+") + "+\n";
+      var headerCells = columnWidths.map((width, index) => " " + element.getChild(0).getChild(index).getText() + " ".repeat(width - element.getChild(0).getChild(index).getText().length) + " ").join("|");
+      textElements.push(headerRow);
+      textElements.push("|" + headerCells + "|\n");
+      textElements.push(headerRow);
+  
+      // Construct other rows
+      for (var i = 1; i < element.getNumChildren(); i++) {
+          // Process each line in the row
+          for (var line = 0; line < rowHeights[i]; line++) {
+              textElements.push("|");
+              // Process this row
+              for (var j = 0; j < nCols; j++) {
+                  var text = element.getChild(i).getChild(j).getText();
+                  var lines = text.split('\n');
+                  // Add padding or content based on the line being processed
+                  if (line < lines.length) {
+                      var padding = " ".repeat(columnWidths[j] - lines[line].length);
+                      textElements.push(" " + lines[line] + padding + " |");
+                  } else {
+                      textElements.push(" " + " ".repeat(columnWidths[j]) + " |");
+                  }
+              }
+              textElements.push("\n");
+          }
+          textElements.push("+" + columnWidths.map(width => "-".repeat(width + 2)).join("+") + "+\n");
+      }
+  }  
     
     
     // Process various types (ElementType).

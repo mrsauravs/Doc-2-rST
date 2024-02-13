@@ -4,7 +4,7 @@ The Javascript is used in the Google Doc to convert the file into restructured t
 
 ## Follow these steps
 
-1. Open a Google document.
+1. Open the Google document that you want to convert.
 2. Navigate to **Extensions** > **Apps Script**.
 3. Copy and paste the entire content of the `gdoc2rst.js` file into the opened window.
 4. **Run** the script.

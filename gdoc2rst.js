@@ -88,71 +88,69 @@ function onOpen() {
   }
   
   // Process each child element (not just paragraphs).
-  function processParagraph(index, element, inSrc, imageCounter, listCounters) {
-    // First, check for things that require no processing.
-    if (element.getNumChildren()==0) {
-      return null;
-    }  
-    // Punt on TOC.
-    if (element.getType() === DocumentApp.ElementType.TABLE_OF_CONTENTS) {
-      return {"text": "[[TOC]]"};
+ function processParagraph(index, element, inSrc, imageCounter, listCounters) {
+    if (element.getNumChildren() == 0) {
+        return null;
     }
-    
-    // Set up for real results.
+
+    if (element.getType() === DocumentApp.ElementType.TABLE_OF_CONTENTS) {
+        return { "text": "[[TOC]]" };
+    }
+
     var result = {};
     var pOut = "";
     var textElements = [];
     var imagePrefix = "image_";
-    
+
     // Handle table elements
     if (element.getType() === DocumentApp.ElementType.TABLE) {
-      var nCols = element.getChild(0).getNumCells();
-      var columnWidths = [];
-      var rowHeights = [];
-  
-      // Calculate the maximum width and height for each column based on the text length
-      for (var j = 0; j < nCols; j++) {
-          var maxWidth = 0;
-          for (var i = 0; i < element.getNumChildren(); i++) {
-              var text = element.getChild(i).getChild(j).getText();
-              var lines = text.split('\n');
-              for (var k = 0; k < lines.length; k++) {
-                  maxWidth = Math.max(maxWidth, lines[k].length);
-              }
-              rowHeights[i] = Math.max(rowHeights[i] || 0, lines.length);
-          }
-          columnWidths.push(maxWidth);
-      }
-  
-      // Construct the table header
-      var headerRow = "+" + columnWidths.map(width => "=".repeat(width + 2)).join("+") + "+\n";
-      var headerCells = columnWidths.map((width, index) => " " + element.getChild(0).getChild(index).getText() + " ".repeat(width - element.getChild(0).getChild(index).getText().length) + " ").join("|");
-      textElements.push(headerRow);
-      textElements.push("|" + headerCells + "|\n");
-      textElements.push(headerRow);
-  
-      // Construct other rows
-      for (var i = 1; i < element.getNumChildren(); i++) {
-          // Process each line in the row
-          for (var line = 0; line < rowHeights[i]; line++) {
-              textElements.push("|");
-              // Process this row
-              for (var j = 0; j < nCols; j++) {
-                  var text = element.getChild(i).getChild(j).getText();
-                  var lines = text.split('\n');
-                  // Add padding or content based on the line being processed
-                  if (line < lines.length) {
-                      var padding = " ".repeat(columnWidths[j] - lines[line].length);
-                      textElements.push(" " + lines[line] + padding + " |");
-                  } else {
-                      textElements.push(" " + " ".repeat(columnWidths[j]) + " |");
-                  }
-              }
-              textElements.push("\n");
-          }
-          textElements.push("+" + columnWidths.map(width => "-".repeat(width + 2)).join("+") + "+\n");
-      }
-  }  
+        var nCols = element.getChild(0).getNumCells();
+        var columnWidths = [];
+        var rowHeights = [];
+
+        // Add tabularcolumns directive
+        textElements.push('.. tabularcolumns:: |\X{2}{4}|\X{1}{4}|\X{1}{4}|\n\n');
+
+        // Calculate the maximum width and height for each column based on the text length
+        for (var j = 0; j < nCols; j++) {
+            var maxWidth = 0;
+            for (var i = 0; i < element.getNumChildren(); i++) {
+                var text = element.getChild(i).getChild(j).getText();
+                var lines = text.split('\n');
+                for (var k = 0; k < lines.length; k++) {
+                    maxWidth = Math.max(maxWidth, lines[k].length);
+                }
+                rowHeights[i] = Math.max(rowHeights[i] || 0, lines.length);
+            }
+            columnWidths.push(maxWidth);
+        }
+
+        // Construct the table header
+        var headerRow = "+" + columnWidths.map(width => "=".repeat(width + 2)).join("+") + "+\n";
+        var headerCells = columnWidths.map((width, index) => " " + element.getChild(0).getChild(index).getText() + " ".repeat(width - element.getChild(0).getChild(index).getText().length) + " ").join("|");
+        textElements.push(headerRow);
+        textElements.push("|" + headerCells + "|\n");
+        textElements.push(headerRow);
+
+        // Construct other rows
+        for (var i = 1; i < element.getNumChildren(); i++) {
+            for (var line = 0; line < rowHeights[i]; line++) {
+                textElements.push("|");
+                for (var j = 0; j < nCols; j++) {
+                    var text = element.getChild(i).getChild(j).getText();
+                    var lines = text.split('\n');
+                    if (line < lines.length) {
+                        var padding = " ".repeat(columnWidths[j] - lines[line].length);
+                        textElements.push(" " + lines[line] + padding + " |");
+                    } else {
+                        textElements.push(" " + " ".repeat(columnWidths[j]) + " |");
+                    }
+                }
+                textElements.push("\n");
+            }
+            textElements.push("+" + columnWidths.map(width => "-".repeat(width + 2)).join("+") + "+\n");
+        }
+    }  
     
     
     // Process various types (ElementType).

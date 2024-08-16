@@ -247,16 +247,16 @@ function onOpen() {
         switch (paragraphObj.getHeading()) {
           // Add a # for each heading level. No break, so we accumulate the right number.
           case DocumentApp.ParagraphHeading.HEADING4:
-            underline = "'".repeat(length);
+            underline = "'".repeat(length + 8);
             break;
           case DocumentApp.ParagraphHeading.HEADING3:
-            underline = '^'.repeat(length);
+            underline = '^'.repeat(length + 8);
             break;
           case DocumentApp.ParagraphHeading.HEADING2:
-            underline = '~'.repeat(length);
+            underline = '~'.repeat(length + 8);
             break;
           case DocumentApp.ParagraphHeading.HEADING1:
-            underline = '-'.repeat(length);
+            underline = '-'.repeat(length + 8);
             break;
           case DocumentApp.ParagraphHeading.TITLE:
             overline = '='.repeat(length + 2);

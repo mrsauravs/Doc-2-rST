@@ -78,8 +78,7 @@ function onOpen() {
     
     MailApp.sendEmail(Session.getActiveUser().getEmail(), 
                       "[RST_MAKER] "+doc.getName(), 
-                      "Your converted reST document is attached (converted from "+doc.getUrl()+")"+
-                      "\n\nDon't know how to use the format options? See http://github.com/mangini/gdocs2md\n",
+                      "Your converted reST document is attached (converted from "+doc.getUrl()+")",
                       { "attachments": attachments });
   }
   
